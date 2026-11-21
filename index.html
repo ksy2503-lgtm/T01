@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>프로젝트 D-day 카운터</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #FFFFFF;
+    --ink: #221B1F;
+    --sub: #6F666B;
+    --muted: #B3ABAF;
+    --line: #F0E6EA;
+    --pink: #E5326F;
+    --pink-deep: #C21F58;
+    --pink-soft: #FDEAF1;
+    --pink-tint: #FFF6F9;
+    --past: #C9C3C6;
+    --past-bg: #F6F4F5;
+    --danger: #C21F58;
+    --num: "Archivo", "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
+    --text: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", sans-serif;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  *, *::before, *::after { box-sizing: inherit; }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--text);
+    font-size: 16px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 28px 20px 64px;
+  }
+
+  /* ---------- Top ---------- */
+  .top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid var(--line);
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--sub);
+  }
+  .brand-mark {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--pink);
+  }
+  .today-chip {
+    font-size: 0.875rem;
+    color: var(--sub);
+  }
+
+  /* ---------- Hero ---------- */
+  .hero { padding: 36px 0 8px; }
+  .project-name {
+    margin: 0;
+    font-size: 1.375rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    word-break: keep-all;
+    overflow-wrap: anywhere;
+  }
+  .dday {
+    display: block;
+    margin: 6px 0 0 -0.04em;
+    font-family: var(--num);
+    font-variation-settings: "wdth" 70;
+    font-stretch: 70%;
+    font-weight: 850;
+    font-size: clamp(7rem, 34vw, 15rem);
+    line-height: 0.84;
+    letter-spacing: -0.035em;
+    color: var(--pink);
+    font-variant-numeric: tabular-nums;
+  }
+  .dday.is-over { color: var(--ink); }
+  .dday.is-today { color: var(--pink-deep); }
+  .dday-caption {
+    margin: 14px 0 0;
+    font-size: 1.0625rem;
+    color: var(--ink);
+  }
+  .dday-caption strong { color: var(--pink); font-weight: 700; }
+  .dday-caption .soft { color: var(--sub); }
+
+  /* ---------- Progress ---------- */
+  .progress { margin-top: 32px; }
+  .progress-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 10px;
+  }
+  .progress-head h2 {
+    margin: 0;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: var(--sub);
+  }
+  .pct {
+    font-family: var(--num);
+    font-variation-settings: "wdth" 80;
+    font-stretch: 80%;
+    font-weight: 800;
+    font-size: 2.25rem;
+    line-height: 1;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+  .pct small { font-size: 0.55em; margin-left: 2px; color: var(--sub); }
+  .bar {
+    position: relative;
+    height: 14px;
+    border-radius: 7px;
+    background: var(--pink-soft);
+    overflow: hidden;
+  }
+  .bar-fill {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 0;
+    background: var(--pink);
+    border-radius: 7px;
+    transition: width 0.6s cubic-bezier(.2,.8,.2,1);
+  }
+  .bar-ends {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 8px;
+    font-size: 0.8125rem;
+    color: var(--sub);
+    font-variant-numeric: tabular-nums;
+  }
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    margin-top: 22px;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+  .stat { padding: 14px 4px; }
+  .stat + .stat { border-left: 1px solid var(--line); padding-left: 16px; }
+  .stat dt { font-size: 0.8125rem; color: var(--sub); }
+  .stat dd {
+    margin: 2px 0 0;
+    font-family: var(--num);
+    font-variation-settings: "wdth" 85;
+    font-stretch: 85%;
+    font-weight: 700;
+    font-size: 1.5rem;
+    line-height: 1.2;
+    font-variant-numeric: tabular-nums;
+  }
+  .stat dd span { font-family: var(--text); font-size: 0.875rem; font-weight: 500; margin-left: 2px; color: var(--sub); }
+
+  /* ---------- Timeline ---------- */
+  .section { margin-top: 48px; }
+  .section-title {
+    margin: 0 0 18px;
+    font-size: 1.125rem;
+    font-weight: 700;
+  }
+  .track-wrap { padding: 34px 10px 6px; }
+  .track {
+    position: relative;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--line);
+  }
+  .track-done {
+    position: absolute;
+    inset: 0 auto 0 0;
+    background: var(--past);
+    border-radius: 2px;
+  }
+  .node {
+    position: absolute;
+    top: 50%;
+    width: 26px; height: 26px;
+    margin: -13px 0 0 -13px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-family: var(--num);
+    font-weight: 700;
+    font-size: 0.8125rem;
+    background: var(--bg);
+    border: 2px solid var(--ink);
+    color: var(--ink);
+  }
+  .node.past { border-color: var(--past); background: var(--past); color: #fff; }
+  .node.current { border-color: var(--pink); background: var(--pink); color: #fff; box-shadow: 0 0 0 5px var(--pink-soft); }
+  .today-marker {
+    position: absolute;
+    top: -30px;
+    bottom: -8px;
+    width: 0;
+    border-left: 2px dashed var(--pink);
+  }
+  .today-marker span {
+    position: absolute;
+    top: -2px;
+    left: 0;
+    transform: translateX(-50%);
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--pink);
+    background: var(--bg);
+    padding: 0 4px;
+    white-space: nowrap;
+  }
+  .track-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 16px;
+    font-size: 0.75rem;
+    color: var(--sub);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .stages {
+    list-style: none;
+    margin: 22px 0 0;
+    padding: 0;
+  }
+  .stage {
+    display: grid;
+    grid-template-columns: 34px 1fr auto;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 14px;
+    border-radius: 14px;
+    position: relative;
+  }
+  .stage + .stage { margin-top: 4px; }
+  .stage::before {
+    content: "";
+    position: absolute;
+    left: 30px;
+    top: -6px;
+    height: 12px;
+    border-left: 2px solid var(--line);
+  }
+  .stage:first-child::before { display: none; }
+  .stage-num {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-family: var(--num);
+    font-weight: 700;
+    border: 2px solid var(--ink);
+    background: var(--bg);
+  }
+  .stage-name { font-weight: 700; font-size: 1.0625rem; }
+  .stage-date { font-size: 0.875rem; color: var(--sub); font-variant-numeric: tabular-nums; }
+  .stage-status {
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-align: right;
+    white-space: nowrap;
+  }
+  .stage.past { background: var(--past-bg); }
+  .stage.past .stage-num { border-color: var(--past); background: var(--past); color: #fff; }
+  .stage.past .stage-name,
+  .stage.past .stage-date,
+  .stage.past .stage-status { color: var(--past); }
+  .stage.past .stage-name { text-decoration: line-through; text-decoration-thickness: 1.5px; }
+  .stage.current { background: var(--pink-tint); box-shadow: inset 0 0 0 1.5px var(--pink); }
+  .stage.current .stage-num { border-color: var(--pink); background: var(--pink); color: #fff; }
+  .stage.current .stage-status { color: var(--pink); font-weight: 700; }
+  .stage.unset .stage-num { border-style: dashed; border-color: var(--muted); color: var(--muted); }
+  .stage.unset .stage-status { color: var(--muted); }
+
+  /* ---------- Inputs ---------- */
+  .editor {
+    margin-top: 56px;
+    padding: 24px 20px;
+    border-radius: 20px;
+    background: var(--pink-tint);
+    border: 1px solid var(--pink-soft);
+  }
+  .editor .section-title { margin-bottom: 4px; }
+  .editor-help { margin: 0 0 20px; font-size: 0.875rem; color: var(--sub); }
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field label { font-size: 0.875rem; font-weight: 500; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 14px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .sub-head {
+    margin: 26px 0 12px;
+    padding-top: 20px;
+    border-top: 1px solid var(--pink-soft);
+    font-size: 0.9375rem;
+    font-weight: 700;
+  }
+  .sub-head span { font-weight: 400; color: var(--sub); font-size: 0.8125rem; margin-left: 6px; }
+  input[type="text"], input[type="date"] {
+    width: 100%;
+    min-height: 46px;
+    padding: 10px 12px;
+    font: inherit;
+    font-size: 1rem;
+    color: var(--ink);
+    background: var(--bg);
+    border: 1.5px solid #EBDDE3;
+    border-radius: 10px;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  input[type="date"] { font-variant-numeric: tabular-nums; }
+  input:focus-visible, button:focus-visible {
+    outline: 3px solid var(--pink);
+    outline-offset: 2px;
+  }
+  input:focus { border-color: var(--pink); }
+  input[aria-invalid="true"] { border-color: var(--danger); }
+  .error {
+    margin: 12px 0 0;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--danger);
+  }
+  .error:empty { display: none; }
+  .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; }
+  button {
+    font: inherit;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    min-height: 44px;
+    padding: 0 18px;
+    border-radius: 999px;
+    cursor: pointer;
+    border: 1.5px solid var(--pink);
+  }
+  .btn-ghost { background: var(--bg); color: var(--pink-deep); }
+  .btn-ghost:hover { background: var(--pink-soft); }
+  .btn-solid { background: var(--pink); color: #fff; }
+  .btn-solid:hover { background: var(--pink-deep); border-color: var(--pink-deep); }
+  .saved-note { font-size: 0.8125rem; color: var(--sub); align-self: center; }
+  .sync {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin: 0 0 6px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--sub);
+  }
+  .sync-dot {
+    flex: none;
+    width: 9px; height: 9px;
+    margin-top: 0.42em;
+    border-radius: 50%;
+    background: var(--muted);
+  }
+  .sync.live .sync-dot { background: var(--pink); box-shadow: 0 0 0 4px var(--pink-soft); }
+  .sync.live { color: var(--ink); }
+  .sync.warn { color: var(--danger); }
+  .sync.warn .sync-dot { background: var(--danger); }
+  .meta { margin: 0 0 18px; font-size: 0.8125rem; color: var(--sub); }
+  .meta:empty { display: none; }
+  input:disabled { background: var(--past-bg); color: var(--sub); border-color: var(--line); }
+  button:disabled { opacity: 0.45; cursor: not-allowed; }
+  .btn-ghost.confirming { background: var(--pink); color: #fff; }
+
+  .empty {
+    padding: 40px 0 8px;
+    color: var(--sub);
+  }
+  .empty .dday { color: var(--pink-soft); }
+  [hidden] { display: none !important; }
+
+  /* ---------- Mobile ---------- */
+  @media (max-width: 560px) {
+    .wrap { padding: 20px 16px 48px; }
+    .hero { padding-top: 28px; }
+    .grid-2 { grid-template-columns: 1fr; }
+    .grid-4 { grid-template-columns: 1fr 1fr; }
+    .stats .stat dd { font-size: 1.25rem; }
+    .stat + .stat { padding-left: 10px; }
+    .stage { grid-template-columns: 34px 1fr; padding: 14px 12px; gap: 4px 12px; }
+    .stage-status { grid-column: 2; text-align: left; }
+    .stage::before { left: 28px; }
+    .editor { padding: 20px 16px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .bar-fill { transition: none; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="brand"><span class="brand-mark" aria-hidden="true"></span>프로젝트 D-day 카운터</div>
+    <div class="today-chip" id="todayChip"></div>
+  </header>
+
+  <!-- 결과 -->
+  <main id="result">
+    <section class="hero" aria-live="polite">
+      <h1 class="project-name" id="outName"></h1>
+      <span class="dday" id="outDday">D-0</span>
+      <p class="dday-caption" id="outCaption"></p>
+    </section>
+
+    <section class="progress" aria-label="진행률">
+      <div class="progress-head">
+        <h2>오늘 기준 진행률</h2>
+        <div class="pct" id="outPct">0<small>%</small></div>
+      </div>
+      <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" id="bar">
+        <div class="bar-fill" id="barFill"></div>
+      </div>
+      <div class="bar-ends"><span id="outStart"></span><span id="outEnd"></span></div>
+
+      <dl class="stats">
+        <div class="stat"><dt>전체 기간</dt><dd id="statTotal">0<span>일</span></dd></div>
+        <div class="stat"><dt>지난 날</dt><dd id="statPassed">0<span>일</span></dd></div>
+        <div class="stat"><dt>남은 날</dt><dd id="statLeft">0<span>일</span></dd></div>
+      </dl>
+    </section>
+
+    <section class="section" aria-label="단계별 타임라인">
+      <h2 class="section-title">단계별 타임라인</h2>
+      <div class="track-wrap">
+        <div class="track" id="track">
+          <div class="track-done" id="trackDone"></div>
+        </div>
+        <div class="track-labels"><span>시작</span><span>마감</span></div>
+      </div>
+      <ol class="stages" id="stageList"></ol>
+    </section>
+  </main>
+
+  <section class="empty" id="empty" hidden>
+    <span class="dday" aria-hidden="true">D-?</span>
+    <p>아래에 시작일과 마감일을 입력하면 남은 일수와 진행률이 표시됩니다.</p>
+  </section>
+
+  <!-- 입력 -->
+  <section class="editor" aria-labelledby="editorTitle">
+    <h2 class="section-title" id="editorTitle">일정 입력</h2>
+    <p class="editor-help" id="editorHelp">입력하는 즉시 위 화면에 반영됩니다.</p>
+    <p class="sync" id="sync" role="status"><span class="sync-dot" aria-hidden="true"></span><span id="syncText">공유 데이터를 불러오는 중입니다.</span></p>
+    <p class="meta" id="meta"></p>
+
+    <div class="field">
+      <label for="inName">프로젝트 이름</label>
+      <input type="text" id="inName" placeholder="예: 봄 시즌 캠페인 사이트" maxlength="60" autocomplete="off">
+    </div>
+    <div class="grid-2">
+      <div class="field">
+        <label for="inStart">시작일</label>
+        <input type="date" id="inStart">
+      </div>
+      <div class="field">
+        <label for="inEnd">마감일</label>
+        <input type="date" id="inEnd">
+      </div>
+    </div>
+
+    <h3 class="sub-head">단계별 날짜<span>각 단계를 마치는 날짜</span></h3>
+    <div class="grid-4" id="stageInputs"></div>
+
+    <p class="error" id="error" role="alert"></p>
+
+    <div class="actions">
+      <button type="button" class="btn-ghost" id="btnAuto">단계 날짜 자동 배분</button>
+      <button type="button" class="btn-ghost" id="btnClear">입력 지우기</button>
+      <span class="saved-note" id="savedNote"></span>
+    </div>
+  </section>
+
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var STAGES = ["기획", "제작", "검토", "완료"];
+  var LOCAL_KEY = "dday-counter-v1";
+  var CACHE_KEY = "dday-counter-shared-cache";
+  var DOC_PATH = "shared/project";
+  var DAY = 86400000;
+  var WD = ["일", "월", "화", "수", "목", "금", "토"];
+
+  var $ = function (id) { return document.getElementById(id); };
+
+  /* ---------- 날짜 유틸 ---------- */
+  function todayDate() {
+    var n = new Date();
+    return new Date(n.getFullYear(), n.getMonth(), n.getDate());
+  }
+  function parse(v) {
+    if (!v || !/^\d{4}-\d{2}-\d{2}$/.test(v)) return null;
+    var p = v.split("-").map(Number);
+    var d = new Date(p[0], p[1] - 1, p[2]);
+    return isNaN(d) ? null : d;
+  }
+  function toISO(d) {
+    return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+  }
+  function diff(a, b) { return Math.round((b - a) / DAY); }
+  function addDays(d, n) { return new Date(d.getFullYear(), d.getMonth(), d.getDate() + n); }
+  function fmt(d) {
+    return d.getFullYear() + "." + String(d.getMonth() + 1).padStart(2, "0") + "." +
+      String(d.getDate()).padStart(2, "0") + " (" + WD[d.getDay()] + ")";
+  }
+  function fmtShort(d) { return (d.getMonth() + 1) + "월 " + d.getDate() + "일 (" + WD[d.getDay()] + ")"; }
+  function fmtStamp(ms) {
+    var d = new Date(ms);
+    return (d.getMonth() + 1) + "월 " + d.getDate() + "일 " +
+      String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0");
+  }
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+
+  /* ---------- 입력 필드 ---------- */
+  var stageBox = $("stageInputs");
+  STAGES.forEach(function (name, i) {
+    var f = document.createElement("div");
+    f.className = "field";
+    f.innerHTML = '<label for="inStage' + i + '">' + (i + 1) + ". " + name + "</label>" +
+      '<input type="date" id="inStage' + i + '">';
+    stageBox.appendChild(f);
+  });
+  var inName = $("inName"), inStart = $("inStart"), inEnd = $("inEnd");
+  var stageInputs = STAGES.map(function (_, i) { return $("inStage" + i); });
+  var allInputs = [inName, inStart, inEnd].concat(stageInputs);
+  var btnAuto = $("btnAuto"), btnClear = $("btnClear");
+
+  function readState() {
+    return {
+      name: inName.value.trim(),
+      start: inStart.value,
+      end: inEnd.value,
+      stages: stageInputs.map(function (el) { return el.value; })
+    };
+  }
+  function setVal(el, v) {
+    if (document.activeElement === el) return; // 입력 중인 칸은 건드리지 않음
+    if (el.value !== v) el.value = v;
+  }
+  function fill(state, force) {
+    state = state || {};
+    var stages = Array.isArray(state.stages) ? state.stages : [];
+    var set = force ? function (el, v) { el.value = v; } : setVal;
+    set(inName, typeof state.name === "string" ? state.name : "");
+    set(inStart, typeof state.start === "string" ? state.start : "");
+    set(inEnd, typeof state.end === "string" ? state.end : "");
+    stageInputs.forEach(function (el, i) { set(el, typeof stages[i] === "string" ? stages[i] : ""); });
+  }
+  function sample() {
+    var t = todayDate();
+    var s = addDays(t, -18), e = addDays(t, 30), total = diff(s, e);
+    return {
+      name: "연말 캠페인 사이트",
+      start: toISO(s), end: toISO(e),
+      stages: [0.2, 0.6, 0.85, 1].map(function (r) { return toISO(addDays(s, Math.round(total * r))); })
+    };
+  }
+
+  /* ---------- 저장소 (localStorage는 보조용) ---------- */
+  function lsGet(k) {
+    try { var raw = localStorage.getItem(k); return raw ? JSON.parse(raw) : null; } catch (e) { return null; }
+  }
+  function lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+
+  /* ---------- 상태 표시 ---------- */
+  function setSync(kind, text) {
+    var el = $("sync");
+    el.className = "sync" + (kind ? " " + kind : "");
+    $("syncText").textContent = text;
+  }
+
+  /* ---------- 렌더 ---------- */
+  function render() {
+    var st = readState();
+    var t = todayDate();
+    var s = parse(st.start), e = parse(st.end);
+    var err = "";
+
+    $("todayChip").textContent = "오늘 " + fmt(t);
+    inEnd.removeAttribute("aria-invalid");
+
+    if (!s || !e) {
+      $("result").hidden = true; $("empty").hidden = false; $("error").textContent = "";
+      return;
+    }
+    if (e < s) {
+      inEnd.setAttribute("aria-invalid", "true");
+      $("error").textContent = "마감일이 시작일보다 빠릅니다. 날짜를 다시 확인하세요.";
+      $("result").hidden = true; $("empty").hidden = false;
+      return;
+    }
+    $("result").hidden = false; $("empty").hidden = true;
+
+    $("outName").textContent = st.name || "이름 없는 프로젝트";
+    document.title = (st.name ? st.name + " | " : "") + "프로젝트 D-day 카운터";
+
+    var left = diff(t, e);
+    var dd = $("outDday"), cap = $("outCaption");
+    dd.classList.remove("is-over", "is-today");
+    if (left > 0) {
+      dd.textContent = "D-" + left;
+      cap.innerHTML = "마감까지 <strong>" + left + "일</strong> 남았습니다. " +
+        '<span class="soft">' + (t < s ? "시작까지 " + diff(t, s) + "일 남음" : "마감일 " + fmt(e)) + "</span>";
+    } else if (left === 0) {
+      dd.textContent = "D-DAY"; dd.classList.add("is-today");
+      cap.innerHTML = "<strong>오늘이 마감일입니다.</strong>";
+    } else {
+      dd.textContent = "D+" + Math.abs(left); dd.classList.add("is-over");
+      cap.innerHTML = "마감일이 <strong>" + Math.abs(left) + "일</strong> 지났습니다. " +
+        '<span class="soft">마감일 ' + fmt(e) + "</span>";
+    }
+
+    var total = diff(s, e);
+    var passed = Math.min(Math.max(diff(s, t), 0), total);
+    var pct = total === 0 ? (t >= s ? 100 : 0) : Math.round((passed / total) * 100);
+    $("outPct").innerHTML = pct + "<small>%</small>";
+    $("barFill").style.width = pct + "%";
+    $("bar").setAttribute("aria-valuenow", pct);
+    $("outStart").textContent = fmt(s);
+    $("outEnd").textContent = fmt(e);
+    $("statTotal").innerHTML = total + "<span>일</span>";
+    $("statPassed").innerHTML = passed + "<span>일</span>";
+    $("statLeft").innerHTML = Math.max(left, 0) + "<span>일</span>";
+
+    var stageDates = st.stages.map(parse);
+    var currentIdx = -1;
+    for (var i = 0; i < STAGES.length; i++) {
+      if (stageDates[i] && stageDates[i] >= t) { currentIdx = i; break; }
+    }
+    var pos = function (d) {
+      if (total === 0) return d < s ? 0 : 100;
+      return Math.min(Math.max(diff(s, d) / total * 100, 0), 100);
+    };
+
+    var track = $("track");
+    track.querySelectorAll(".node, .today-marker").forEach(function (n) { n.remove(); });
+    $("trackDone").style.width = pct + "%";
+    var tm = document.createElement("div");
+    tm.className = "today-marker";
+    tm.style.left = pos(t) + "%";
+    tm.innerHTML = "<span>오늘</span>";
+    track.appendChild(tm);
+    stageDates.forEach(function (d, i) {
+      if (!d) return;
+      var n = document.createElement("div");
+      n.className = "node " + (d < t ? "past" : (i === currentIdx ? "current" : ""));
+      n.style.left = pos(d) + "%";
+      n.textContent = i + 1;
+      n.title = STAGES[i] + " " + fmt(d);
+      n.setAttribute("aria-hidden", "true");
+      track.appendChild(n);
+    });
+
+    $("stageList").innerHTML = STAGES.map(function (name, i) {
+      var d = stageDates[i], cls, status;
+      if (!d) { cls = "unset"; status = "날짜 미정"; }
+      else if (d < t) { cls = "past"; status = "지난 단계"; }
+      else if (i === currentIdx) {
+        var r = diff(t, d);
+        cls = "current"; status = r === 0 ? "진행 중, 오늘 마감" : "진행 중, " + r + "일 남음";
+      } else { cls = ""; status = diff(t, d) + "일 남음"; }
+      var outOfRange = d && (d < s || d > e) ? " (프로젝트 기간 밖)" : "";
+      return '<li class="stage ' + cls + '">' +
+        '<span class="stage-num" aria-hidden="true">' + (i + 1) + "</span>" +
+        '<div><div class="stage-name">' + esc(name) + "</div>" +
+        '<div class="stage-date">' + (d ? fmtShort(d) + outOfRange : "아래에서 날짜를 입력하세요") + "</div></div>" +
+        '<div class="stage-status">' + status + "</div></li>";
+    }).join("");
+
+    for (var k = 1; k < stageDates.length; k++) {
+      if (stageDates[k] && stageDates[k - 1] && stageDates[k] < stageDates[k - 1]) {
+        err = STAGES[k] + " 날짜가 " + STAGES[k - 1] + " 날짜보다 빠릅니다. 단계 순서대로 입력하세요.";
+        break;
+      }
+    }
+    $("error").textContent = err;
+  }
+
+  /* ---------- 공유 동기화 ---------- */
+  var mode = "loading";      // loading | shared | local
+  var canWrite = true;
+  var ref = null, user = null, myId = null;
+  var dirty = false, writing = false, debounce = null, retried = false;
+  var lastRemote = null;
+
+  function setReadOnly(on) {
+    canWrite = !on;
+    allInputs.forEach(function (el) { el.disabled = on; });
+    btnAuto.disabled = on; btnClear.disabled = on;
+    if (on) {
+      $("editorHelp").textContent = "보기 전용 권한이라 일정을 바꿀 수 없습니다. 수정하려면 공유한 사람에게 참여 권한을 요청하세요.";
+    }
+  }
+
+  async function updateMeta(remote) {
+    var meta = $("meta");
+    if (!remote || !remote.updatedAt) { meta.textContent = ""; return; }
+    var who = "팀원";
+    if (remote.updatedBy && remote.updatedBy === myId) who = "나";
+    else if (remote.updatedBy && user && user.profiles) {
+      try {
+        var ps = await user.profiles([remote.updatedBy]);
+        who = (ps && ps[remote.updatedBy] && ps[remote.updatedBy].name) || "팀원";
+      } catch (e) {}
+    }
+    meta.textContent = "마지막 수정: " + who + ", " + fmtStamp(remote.updatedAt);
+  }
+
+  function applyRemote(remote) {
+    fill(remote ? remote : { name: "", start: "", end: "", stages: [] });
+    render();
+    updateMeta(remote);
+  }
+
+  function schedule() {
+    clearTimeout(debounce);
+    debounce = setTimeout(flush, 700);
+  }
+
+  async function flush() {
+    if (!ref || !canWrite) return;
+    if (writing) { dirty = true; return; }
+    writing = true; dirty = false;
+    setSync("live", "저장 중입니다.");
+    var data = readState();
+    data.updatedAt = Date.now();
+    data.updatedBy = myId || null;
+    try {
+      await ref.set(data);
+      retried = false;
+      lsSet(CACHE_KEY, data);
+      setSync("live", "저장했습니다. 함께 쓰는 모든 사람에게 반영되었습니다.");
+    } catch (err) {
+      var code = err && err.code;
+      if (code === "invalid_argument") {
+        setReadOnly(true);
+        setSync("warn", "수정 권한이 없어 저장하지 못했습니다.");
+        applyRemote(lastRemote);
+      } else if (code === "quota_exceeded") {
+        setSync("warn", "저장 공간이 가득 차 저장하지 못했습니다.");
+      } else if ((code === "unavailable" || !code) && !retried) {
+        retried = true; dirty = true;
+        setSync("warn", "연결이 불안정해 다시 저장을 시도합니다.");
+      } else {
+        setSync("warn", "저장하지 못했습니다. 잠시 후 다시 수정해 보세요.");
+      }
+    } finally {
+      writing = false;
+      if (dirty) setTimeout(flush, retried ? 800 + Math.random() * 800 : 0);
+    }
+  }
+
+  function onChange() {
+    render();
+    if (mode === "shared") {
+      if (!canWrite) return;
+      dirty = true;
+      setSync("live", "입력을 멈추면 저장됩니다.");
+      schedule();
+    } else if (mode === "local") {
+      lsSet(LOCAL_KEY, readState());
+      $("savedNote").textContent = "저장됨";
+      clearTimeout(onChange.t);
+      onChange.t = setTimeout(function () { $("savedNote").textContent = ""; }, 1500);
+    }
+  }
+
+  function goLocal() {
+    mode = "local";
+    var saved = lsGet(LOCAL_KEY);
+    fill(saved || readState(), true);
+    render();
+    setSync("", "이 브라우저에만 저장됩니다. claude.ai에서 공유 링크로 열면 팀과 함께 쓸 수 있습니다.");
+    $("editorHelp").textContent = "입력하는 즉시 위 화면에 반영됩니다.";
+  }
+
+  async function connect() {
+    if (!window.claude || typeof window.claude.use !== "function") { goLocal(); return; }
+    var db = null;
+    try { db = await window.claude.use("db"); } catch (e) { db = null; }
+    if (!db) { goLocal(); return; }
+
+    mode = "shared";
+    try { user = await window.claude.use("user"); } catch (e) { user = null; }
+    if (user) {
+      try { myId = await user.id(); } catch (e) {}
+      try {
+        var can = await user.can("data.write");
+        if (can === false) setReadOnly(true);
+      } catch (e) {}
+    }
+    if (canWrite) $("editorHelp").textContent = "여기서 바꾼 내용은 이 페이지를 함께 보는 모든 사람에게 바로 반영됩니다.";
+
+    ref = db.doc(DOC_PATH);
+    var loadTimer = setTimeout(function () {
+      setSync("warn", "공유 데이터를 아직 불러오지 못했습니다. 화면 내용이 최신이 아닐 수 있습니다.");
+    }, 10000);
+
+    ref.onSnapshot(function (snap) {
+      if (!snap.metadata.fromCache) clearTimeout(loadTimer);
+      if (snap.metadata.hasPendingWrites) return;
+      lastRemote = snap.exists ? snap.data() : null;
+      if (lastRemote) lsSet(CACHE_KEY, lastRemote);
+      if (!snap.metadata.fromCache && !dirty && !writing) {
+        setSync("live", canWrite ? "팀과 실시간으로 공유 중입니다." : "팀과 공유 중입니다. 보기 전용으로 열려 있습니다.");
+      }
+      if (dirty || writing) return; // 내 입력이 저장된 뒤 반영
+      applyRemote(lastRemote);
+    }, function (err) {
+      clearTimeout(loadTimer);
+      if (err && err.code === "revoked") setReadOnly(true);
+      setSync("warn", "공유 데이터 연결이 끊겼습니다. 페이지를 다시 열어 주세요.");
+    });
+  }
+
+  /* ---------- 이벤트 ---------- */
+  allInputs.forEach(function (el) {
+    el.addEventListener("input", onChange);
+    el.addEventListener("change", onChange);
+    el.addEventListener("blur", function () {
+      // 입력하는 동안 다른 사람이 바꾼 값이 있으면 포커스를 벗어날 때 반영
+      if (mode === "shared" && !dirty && !writing && lastRemote) setTimeout(function () { applyRemote(lastRemote); }, 0);
+    });
+  });
+
+  btnAuto.addEventListener("click", function () {
+    var s = parse(inStart.value), e = parse(inEnd.value);
+    if (!s || !e || e < s) {
+      $("error").textContent = "자동 배분하려면 시작일과 마감일을 먼저 올바르게 입력하세요.";
+      return;
+    }
+    var total = diff(s, e);
+    [0.25, 0.6, 0.85, 1].forEach(function (r, i) {
+      stageInputs[i].value = toISO(addDays(s, Math.round(total * r)));
+    });
+    onChange();
+  });
+
+  var clearTimer = null;
+  btnClear.addEventListener("click", function () {
+    if (!btnClear.classList.contains("confirming")) {
+      btnClear.classList.add("confirming");
+      btnClear.textContent = mode === "shared" ? "모두의 화면에서 지워집니다. 한 번 더 누르세요" : "한 번 더 누르면 지워집니다";
+      clearTimer = setTimeout(resetClear, 4000);
+      return;
+    }
+    resetClear();
+    fill({ name: "", start: "", end: "", stages: [] }, true);
+    onChange();
+    inName.focus();
+  });
+  function resetClear() {
+    clearTimeout(clearTimer);
+    btnClear.classList.remove("confirming");
+    btnClear.textContent = "입력 지우기";
+  }
+
+  var lastDay = toISO(todayDate());
+  setInterval(function () {
+    var now = toISO(todayDate());
+    if (now !== lastDay) { lastDay = now; render(); }
+  }, 60000);
+
+  // 첫 화면: 최근에 본 공유 데이터(없으면 이 기기 데이터) 먼저 표시
+  fill(lsGet(CACHE_KEY) || lsGet(LOCAL_KEY) || sample(), true);
+  render();
+  connect();
+})();
+</script>
+</body>
+</html>
